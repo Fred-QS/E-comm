@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon récapitulatif{% endblock %}
+
+{% block stripe_pk %}
+<script type="text/javascript">
+    const pk = '{{ get_pk() }}',
+        orderRef = '{{ reference }}',
+        orderReplace = '{{ path('app_order') }}';
+</script>
+{% endblock %}
+
+{% block javascript %}
+<script src="https://js.stripe.com/v3/"></script>
+{% endblock %}
+
+{% block content %}
+    <h2>Mon récapitulatif</h2>
+    <p>Vérifiez vos informations avant de payer votre commande.</p>
+    <hr/>
+    <div class="row">
+        <div class="col-md-6">
+            <strong>Mon adresse de livraison</strong><br/>
+            <div class="form-check mt-4">
+                {{ delivery|raw }}
+            </div>
+            <hr/>
+            <strong>Mon transporteur</strong><br/>
+            <div class="form-check mt-4">
+                {{ carrier.name }}<br/>
+                {{ carrier.description }}<br/>
+                {{ carrier.price|price_format }}<br/>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="text-center">
+                <b>Ma commande</b>
+            </div>
+            <div class="order-summary">
+                {% set total = null %}
+                {% for key,product in cart %}
+                    <div class="row {% if key > 0 %}mt-2{% endif %}">
+                        <div class="col-2">
+                            <img src="/uploads/{{ product.product.illustration }}" alt="{{ product.product.name }}" height="75">
+                        </div>
+                        <div class="col-8 my-auto">
+                            {{ product.product.name }}<br/>
+                            <small>
+                                {{ product.product.subtitle }}
+                                <br/>
+                                x {{ product.quantity }}
+                            </small>
+                        </div>
+                        <div class="col-2 my-auto">
+                            {{ product.product.price|price_format }}
+                        </div>
+                    </div>
+                    {% set total = total + (product.product.price) %}
+                {% endfor %}
+            </div>
+            <hr/>
+            <strong>Sous-total : </strong>{{ total|price_format }}<br/>
+            <strong>Livraison : </strong>{{ carrier.price|price_format }}
+            <hr/>
+            <strong>Total : </strong>{{ (total + carrier.price)|price_format }}
+            <a id="checkout-button" class="btn btn-success btn-block mt-3">Payer | {{ (total + carrier.price)|price_format }}</a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript_footer %}
+<script src="{{ asset('assets/js/checkout.js') }}"></script>
+{% endblock %}
